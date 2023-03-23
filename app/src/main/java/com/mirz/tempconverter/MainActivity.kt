@@ -32,6 +32,7 @@ class MainActivity : ComponentActivity() {
                     Column {
                         StatefulTemperatureInput()
                         ConverterApp()
+                        TwoWayConverterApp()
                     }
 
                 }
@@ -39,6 +40,39 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+
+@Composable
+private fun TwoWayConverterApp(
+    modifier: Modifier = Modifier,
+) {
+    var celsius by remember { mutableStateOf("") }
+    var fahrenheit by remember { mutableStateOf("") }
+    Column(modifier.padding(16.dp)) {
+        Text(
+            text = stringResource(R.string.two_way_converter),
+            style = MaterialTheme.typography.h5
+        )
+        GeneralTemperatureInput(
+            scale = Scale.CELSIUS,
+            input = celsius,
+            onValueChange = {
+                celsius = it
+                fahrenheit = convertToFahrenheit(it)
+
+            }
+        )
+        GeneralTemperatureInput(
+            scale = Scale.FAHRENHEIT,
+            input = fahrenheit,
+            onValueChange = {
+                fahrenheit = it
+                celsius = convertToCelsius(it)
+            }
+        )
+    }
+}
+
 
 @Composable
 fun ConverterApp(
@@ -99,14 +133,45 @@ fun StatefulTemperatureInput(modifier: Modifier = Modifier) {
 
 }
 
+@Composable
+fun GeneralTemperatureInput(
+    scale: Scale,
+    input: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier) {
+        OutlinedTextField(
+            value = input,
+            label = { Text(stringResource(R.string.enter_temperature, scale.scaleName)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            onValueChange = onValueChange,
+        )
+    }
+}
+
 fun convertToFahrenheit(celsius: String) = celsius.toDoubleOrNull()?.let {
     (it * 9 / 5 + 32).toString()
 }.toString()
+
+fun convertToCelsius(fahrenheit: String) = fahrenheit.toDoubleOrNull()?.let {
+    ((it - 32) * 5 / 9).toString()
+}.toString()
+
+enum class Scale(val scaleName: String) {
+    CELSIUS("Celsius"),
+    FAHRENHEIT("Fahrenheit")
+}
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
     TempConverterTheme {
-        StatefulTemperatureInput()
+        Column {
+            StatefulTemperatureInput()
+            ConverterApp()
+            TwoWayConverterApp()
+        }
     }
 }
+
